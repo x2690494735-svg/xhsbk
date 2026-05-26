@@ -41,6 +41,19 @@ class Crawler:
                 all_notes.extend(notes)
                 print(f"  -> {len(notes)} 条")
 
+            need_content = [n for n in all_notes if n.get("url") and not n.get("desc")]
+            if need_content:
+                print(f"采集正文中（共 {len(need_content)} 篇，同页调API）...")
+                for i, n in enumerate(need_content):
+                    try:
+                        desc = await self._fetch_detail(page, n["url"])
+                        if desc:
+                            n["desc"] = desc
+                            print(f"  [{i+1}/{len(need_content)}] {n['title'][:25]}... OK")
+                    except Exception:
+                        pass
+                    await asyncio.sleep(1.5)
+
             self._save_state(context)
             await browser.close()
 
@@ -117,6 +130,38 @@ class Crawler:
         for n in notes:
             n["keyword"] = keyword
         return notes
+
+    async def _fetch_detail(self, page, url: str) -> str:
+        nid = url.rstrip("/").rsplit("/", 1)[-1]
+        if not nid:
+            return ""
+
+        js = """
+            async (noteId) => {
+                const endpoints = [
+                    `/api/sns/web/v1/feed?source_note_id=${noteId}`,
+                    `/api/sns/web/v1/note/${noteId}`,
+                ];
+                for (const ep of endpoints) {
+                    try {
+                        const resp = await fetch(ep, {credentials:'include'});
+                        if (!resp.ok) continue;
+                        const data = await resp.json();
+                        if (!data.success && data.code !== 0) continue;
+                        const item = data.data?.items?.[0] || data.data;
+                        const nc = item?.note_card || item?.noteCard || item;
+                        const desc = nc?.desc || nc?.display_content || nc?.note_desc || '';
+                        if (desc) return desc;
+                    } catch(e) {}
+                }
+                return '';
+            }
+        """
+        try:
+            result = await page.evaluate(js, nid)
+            return (result or "")[:3000]
+        except Exception:
+            return ""
 
     async def _on_response(self, response):
         url = response.url
