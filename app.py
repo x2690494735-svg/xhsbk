@@ -1,7 +1,6 @@
 import os
 import sys
 import traceback
-import webbrowser
 import shutil
 
 FROZEN = getattr(sys, "frozen", False)
