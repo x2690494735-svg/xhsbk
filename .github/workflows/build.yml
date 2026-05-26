@@ -27,22 +27,25 @@ jobs:
       - name: PyInstaller 打包
         run: pyinstaller build.spec --distpath dist --workpath build --noconfirm
 
+      - name: 列出输出目录
+        run: dir dist /s
+
       - name: 创建启动器
         run: |
-          "@echo off`n`%~dp0小红书热点收集器.exe`npause" | Out-File -FilePath "dist\小红书热点收集器\启动.bat" -Encoding Default
+          "@echo off`n`%~dp0xhs-hot.exe`npause" | Out-File -FilePath "dist\xhs-hot\启动.bat" -Encoding Default
 
       - name: 打包为 zip
-        run: Compress-Archive -Path "dist\小红书热点收集器\*" -DestinationPath "小红书热点收集器.zip"
+        run: Compress-Archive -Path "dist\xhs-hot\*" -DestinationPath "xhs-hot.zip"
 
       - name: 上传 Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: 小红书热点收集器
-          path: 小红书热点收集器.zip
+          name: xhs-hot
+          path: xhs-hot.zip
 
       - name: 创建 Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: 小红书热点收集器.zip
+          files: xhs-hot.zip
           generate_release_notes: true

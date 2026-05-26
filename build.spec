@@ -53,7 +53,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name="小红书热点收集器",
+    name="xhs-hot",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
