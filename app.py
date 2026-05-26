@@ -2,10 +2,13 @@ import os
 import sys
 import traceback
 
-FROZEN = getattr(sys, "frozen", False)
-ROOT = os.path.dirname(sys.executable) if FROZEN else os.path.dirname(__file__)
+import shutil
 
-LOG = os.path.join(ROOT, "error.log")
+FROZEN = getattr(sys, "frozen", False)
+BUNDLE = sys._MEIPASS if FROZEN else os.path.dirname(__file__)
+WORK = os.path.dirname(sys.executable) if FROZEN else os.path.dirname(__file__)
+
+LOG = os.path.join(WORK, "error.log")
 
 try:
     import asyncio
@@ -26,10 +29,15 @@ except Exception:
 
 app = Flask(
     __name__,
-    template_folder=os.path.join(ROOT, "templates"),
+    template_folder=os.path.join(BUNDLE, "templates"),
 )
-cfg_path = os.path.join(ROOT, "config.yaml")
-data_dir = os.path.join(ROOT, "data")
+cfg_path = os.path.join(WORK, "config.yaml")
+data_dir = os.path.join(WORK, "data")
+
+if FROZEN and not os.path.exists(cfg_path):
+    bundled_cfg = os.path.join(BUNDLE, "config.yaml")
+    if os.path.exists(bundled_cfg):
+        shutil.copy(bundled_cfg, cfg_path)
 
 
 @app.route("/")
