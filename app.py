@@ -1,18 +1,28 @@
 import os
 import sys
-import asyncio
-import json
-from datetime import datetime
-from pathlib import Path
-
-import yaml
-from flask import Flask, jsonify, render_template, request
-
-from xhs.crawler import Crawler
-from xhs.storage import Store
+import traceback
 
 FROZEN = getattr(sys, "frozen", False)
 ROOT = os.path.dirname(sys.executable) if FROZEN else os.path.dirname(__file__)
+
+LOG = os.path.join(ROOT, "error.log")
+
+try:
+    import asyncio
+    import json
+    from datetime import datetime
+    from pathlib import Path
+
+    import yaml
+    from flask import Flask, jsonify, render_template, request
+
+    from xhs.crawler import Crawler
+    from xhs.storage import Store
+except Exception:
+    with open(LOG, "w", encoding="utf-8") as f:
+        f.write(traceback.format_exc())
+    print(f"启动失败，详情见 {LOG}")
+    sys.exit(1)
 
 app = Flask(
     __name__,
@@ -87,5 +97,11 @@ def config():
 
 
 if __name__ == "__main__":
-    print("小红书热点收集器 -> http://127.0.0.1:5000")
-    app.run(debug=False, port=5000)
+    try:
+        print("小红书热点收集器 -> http://127.0.0.1:5000")
+        app.run(debug=False, port=5000)
+    except Exception:
+        with open(LOG, "w", encoding="utf-8") as f:
+            f.write(traceback.format_exc())
+        print(f"运行失败，详情见 {LOG}")
+        sys.exit(1)
