@@ -24,6 +24,8 @@ class Crawler:
             page = await context.new_page()
             page.on("response", self._on_response)
 
+            await self._wait_for_login(page)
+
             for kw in self.keywords:
                 print(f"搜索关键词: {kw}")
                 notes = await self._search(page, kw)
@@ -103,6 +105,21 @@ class Crawler:
             "comments": int(nc.get("interact_info", {}).get("comment_count", 0)),
             "cover": nc.get("cover", {}).get("url_default", ""),
         }
+
+    async def _wait_for_login(self, page):
+        await page.goto("https://www.xiaohongshu.com/explore", timeout=self.timeout * 1000)
+        await asyncio.sleep(2)
+
+        has_login_btn = await page.query_selector(".login-btn, .login-container, [class*=login]")
+        if has_login_btn:
+            print("请在弹出的浏览器窗口中扫码登录小红书")
+            print("等待登录中（最长 120 秒）...")
+            for _ in range(120):
+                await asyncio.sleep(1)
+                still_login = await page.query_selector(".login-btn, .login-container, [class*=login]")
+                if not still_login:
+                    print("登录成功")
+                    break
 
     async def _search(self, page, keyword: str) -> list[dict]:
         self.api_notes = []
