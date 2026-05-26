@@ -188,6 +188,8 @@
   .card-expand-hint { font-size:11px; color:var(--gold); margin-top:8px; text-align:center; letter-spacing:1px; display:none; }
   .card.has-desc .card-expand-hint { display:block; }
   .card.expanded .card-expand-hint { display:none; }
+  .card-ext-link { display:block; margin-top:12px; padding:8px 0; text-align:center; color:var(--gold); font-size:12px; text-decoration:none; letter-spacing:1px; border-top:1px solid var(--border); }
+  .card-ext-link:hover { color:var(--gold-light); }
 
   .empty-state { text-align:center; padding:120px 0; color:var(--sub); }
   .empty-orb {
@@ -519,7 +521,7 @@ function render(notes) {
             <span class="card-author"><em>@</em>${n.author||'未知'}</span>
             <span class="card-kw">${n.keyword||''}</span>
           </div>
-          ${hasDesc ? `<div class="card-desc">${desc}</div><div class="card-expand-hint">展开阅读</div>` : ''}
+          ${hasDesc ? `<div class="card-desc">${desc}</div><div class="card-expand-hint">展开阅读</div>` : `<a class="card-ext-link" href="${n.url||'#'}" target="_blank" onclick="event.stopPropagation()">查看原文</a>`}
         </div>
       </div>`;
   }).join('');
