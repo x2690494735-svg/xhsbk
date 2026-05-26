@@ -18,7 +18,7 @@ try:
     import yaml
     from flask import Flask, jsonify, render_template, request
 
-    from xhs.crawler import Crawler
+    from xhs.crawler import Crawler, navigate_to
     from xhs.storage import Store
 except Exception:
     with open(LOG, "w", encoding="utf-8") as f:
@@ -89,6 +89,14 @@ def history_detail(name):
         notes = json.load(f)
     ranked = sorted(notes, key=lambda n: n.get("likes", 0), reverse=True)
     return jsonify({"ok": True, "notes": ranked})
+
+
+@app.route("/api/navigate")
+def navigate():
+    url = request.args.get("url", "")
+    if url:
+        asyncio.run(navigate_to(url, cfg_path))
+    return jsonify({"ok": True})
 
 
 @app.route("/api/config", methods=["GET", "POST"])

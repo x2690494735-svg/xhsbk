@@ -437,6 +437,11 @@ function editKw(i) {
   if (n?.trim()) { keywords[i] = n.trim(); renderKw(); saveConfig(); }
 }
 
+function openNote(url) {
+  if (!url) return;
+  fetch('/api/navigate?url=' + encodeURIComponent(url));
+}
+
 async function startCrawl() {
   const btn = document.getElementById('btnCrawl');
   const bar = document.getElementById('statusBar');
@@ -498,7 +503,7 @@ function render(notes) {
       ? `<img class="card-cover" src="${n.cover}" loading="lazy" onerror="this.replaceWith(coverFallback())">`
       : `<div class="card-cover-fallback">&#9670;</div>`;
     return `
-      <div class="card" style="transition-delay:${i*0.03}s" onclick="window.open('${n.url||'#'}')">
+      <div class="card" style="transition-delay:${i*0.03}s" onclick="openNote('${n.url||''}')">
         <div class="card-rank ${rankClass}">${i+1}</div>
         ${coverHtml}
         <div class="card-body">
