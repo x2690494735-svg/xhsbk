@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔥 小红书热点收集器</title>
+<style>
+  :root {
+    --red: #ff2442;
+    --red-light: #ff6b81;
+    --bg: #fafafa;
+    --card: #fff;
+    --text: #222;
+    --text-sub: #888;
+    --shadow: 0 2px 12px rgba(0,0,0,.06);
+    --radius: 12px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+  .container { max-width:1100px; margin:0 auto; padding:20px 24px; }
+
+  /* header */
+  header { text-align:center; padding:32px 0 20px; }
+  header h1 { font-size:28px; font-weight:800; color:var(--red); letter-spacing:-0.5px; }
+  header p { color:var(--text-sub); margin-top:6px; font-size:14px; }
+
+  /* 关键词区 */
+  .kw-bar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:center; margin-bottom:20px; }
+  .kw-tag { background:var(--card); border:1px solid #eee; border-radius:20px; padding:6px 14px; font-size:13px; cursor:pointer; transition:.2s; display:flex; align-items:center; gap:4px; }
+  .kw-tag:hover { border-color:var(--red-light); }
+  .kw-tag .del { color:#ccc; font-size:16px; line-height:1; }
+  .kw-tag .del:hover { color:var(--red); }
+  .kw-add { display:flex; gap:4px; }
+  .kw-add input { border:1px dashed #ccc; border-radius:20px; padding:6px 12px; font-size:13px; width:100px; outline:none; }
+  .kw-add input:focus { border-color:var(--red); }
+  .kw-add button { background:var(--red); color:#fff; border:none; border-radius:20px; padding:6px 12px; font-size:13px; cursor:pointer; white-space:nowrap; }
+
+  /* 操作按钮 */
+  .actions { text-align:center; margin-bottom:28px; }
+  .btn-crawl { background:var(--red); color:#fff; border:none; padding:12px 48px; font-size:16px; font-weight:600; border-radius:28px; cursor:pointer; transition:.2s; letter-spacing:1px; }
+  .btn-crawl:hover { background:#e0203e; transform:translateY(-1px); box-shadow:0 4px 16px rgba(255,36,66,.3); }
+  .btn-crawl:disabled { background:#ccc; cursor:not-allowed; transform:none; box-shadow:none; }
+  .btn-history { background:none; border:1px solid #ddd; color:#666; padding:10px 28px; font-size:14px; border-radius:28px; cursor:pointer; margin-left:12px; }
+
+  /* 加载动画 */
+  .spinner { display:none; width:20px; height:20px; border:3px solid #fff; border-top-color:transparent; border-radius:50%; animation:spin .6s linear infinite; margin-right:8px; vertical-align:middle; }
+  .loading .spinner { display:inline-block; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* 状态提示 */
+  .status { text-align:center; color:var(--text-sub); font-size:14px; margin-bottom:16px; min-height:20px; }
+
+  /* 结果统计 */
+  .stats { display:none; justify-content:center; gap:24px; margin-bottom:24px; }
+  .stat-item { text-align:center; }
+  .stat-num { font-size:32px; font-weight:800; color:var(--red); }
+  .stat-label { font-size:12px; color:var(--text-sub); }
+
+  /* 笔记卡片 */
+  .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:16px; }
+  .card { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; transition:.2s; cursor:pointer; border:1px solid transparent; }
+  .card:hover { transform:translateY(-2px); box-shadow:0 6px 24px rgba(0,0,0,.1); border-color:#ffe0e0; }
+  .card-body { padding:16px; }
+  .card-title { font-size:15px; font-weight:600; line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .card-meta { display:flex; gap:16px; margin-top:12px; font-size:13px; color:var(--text-sub); }
+  .card-meta span { display:flex; align-items:center; gap:4px; }
+  .card-footer { display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:12px; border-top:1px solid #f5f5f5; }
+  .card-author { font-size:13px; color:#555; }
+  .card-author:before { content:"@"; color:var(--red-light); }
+  .card-kw { font-size:11px; background:#fff0f0; color:var(--red); padding:2px 8px; border-radius:10px; }
+
+  /* 空状态 */
+  .empty { text-align:center; padding:80px 0; color:var(--text-sub); }
+  .empty .icon { font-size:64px; margin-bottom:16px; }
+
+  /* 历史面板 */
+  .overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.3); z-index:99; }
+  .overlay.show { display:block; }
+  .panel { position:fixed; right:0; top:0; width:360px; height:100%; background:var(--card); box-shadow:-4px 0 24px rgba(0,0,0,.08); z-index:100; overflow-y:auto; transform:translateX(100%); transition:.3s; }
+  .panel.show { transform:translateX(0); }
+  .panel-header { padding:20px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; position:sticky; top:0; background:var(--card); }
+  .panel-close { background:none; border:none; font-size:24px; cursor:pointer; color:#999; }
+  .panel-item { padding:14px 20px; border-bottom:1px solid #f5f5f5; cursor:pointer; transition:.15s; }
+  .panel-item:hover { background:#fafafa; }
+  .panel-item .time { font-size:12px; color:var(--text-sub); }
+  .panel-item .name { font-size:14px; font-weight:500; margin-top:2px; }
+
+  @media (max-width: 640px) {
+    .grid { grid-template-columns:1fr; }
+    .panel { width:100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>🔥 小红书热点收集器</h1>
+    <p>追踪你关注的领域，发现正在流行的话题</p>
+  </header>
+
+  <!-- 关键词管理 -->
+  <div class="kw-bar" id="kwBar"></div>
+
+  <!-- 操作 -->
+  <div class="actions">
+    <button class="btn-crawl" id="btnCrawl" onclick="startCrawl()">
+      <span class="spinner"></span>开始采集
+    </button>
+    <button class="btn-history" onclick="toggleHistory()">📂 历史记录</button>
+  </div>
+
+  <!-- 状态 -->
+  <div class="status" id="status"></div>
+
+  <!-- 统计 -->
+  <div class="stats" id="stats">
+    <div class="stat-item"><div class="stat-num" id="statTotal">0</div><div class="stat-label">总条数</div></div>
+    <div class="stat-item"><div class="stat-num" id="statKw">0</div><div class="stat-label">关键词数</div></div>
+    <div class="stat-item"><div class="stat-num" id="statTop">0</div><div class="stat-label">最高点赞</div></div>
+  </div>
+
+  <!-- 结果 -->
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty"><div class="icon">📭</div><p>点「开始采集」获取小红书热点</p></div>
+</div>
+
+<!-- 历史面板遮罩 -->
+<div class="overlay" id="overlay" onclick="toggleHistory()"></div>
+<div class="panel" id="panel">
+  <div class="panel-header">
+    <strong>📂 历史记录</strong>
+    <button class="panel-close" onclick="toggleHistory()">&times;</button>
+  </div>
+  <div id="panelList"></div>
+</div>
+
+<script>
+// ── 关键词 ──
+let keywords = ['AI','认知升级','个人成长'];
+
+async function loadConfig() {
+  try {
+    const r = await fetch('/api/config');
+    const cfg = await r.json();
+    if (cfg.keywords?.length) keywords = cfg.keywords;
+  } catch(e) {}
+  renderKw();
+}
+function saveConfig() {
+  fetch('/api/config', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({keywords})
+  });
+}
+function renderKw() {
+  const bar = document.getElementById('kwBar');
+  bar.innerHTML = keywords.map((k,i) =>
+    `<span class="kw-tag" onclick="editKw(${i})">${k}<span class="del" onclick="event.stopPropagation();delKw(${i})">&times;</span></span>`
+  ).join('') + `
+    <span class="kw-add">
+      <input id="kwInput" placeholder="新关键词" onkeydown="if(event.key==='Enter')addKw()">
+      <button onclick="addKw()">+ 添加</button>
+    </span>`;
+}
+function addKw() {
+  const inp = document.getElementById('kwInput');
+  const v = inp.value.trim();
+  if (v && !keywords.includes(v)) { keywords.push(v); renderKw(); saveConfig(); }
+  inp.value = '';
+}
+function delKw(i) { keywords.splice(i,1); renderKw(); saveConfig(); }
+function editKw(i) {
+  const n = prompt('修改关键词', keywords[i]);
+  if (n && n.trim()) { keywords[i] = n.trim(); renderKw(); saveConfig(); }
+}
+
+// ── 采集 ──
+async function startCrawl() {
+  const btn = document.getElementById('btnCrawl');
+  const status = document.getElementById('status');
+  btn.disabled = true;
+  btn.classList.add('loading');
+  status.textContent = '⏳ 正在采集，浏览器窗口打开中…';
+
+  try {
+    const r = await fetch('/api/crawl', { method:'POST' });
+    const data = await r.json();
+    if (!data.ok) { status.textContent = '⚠️ ' + data.error; return; }
+    status.textContent = `✅ 采集完成，共 ${data.total} 条`;
+    renderNotes(data.notes);
+  } catch(e) {
+    status.textContent = '❌ 连接失败，请确认 app.py 已启动';
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('loading');
+  }
+}
+
+// ── 渲染笔记 ──
+function renderNotes(notes) {
+  const grid = document.getElementById('grid');
+  const empty = document.getElementById('empty');
+  const stats = document.getElementById('stats');
+
+  if (!notes.length) {
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    stats.style.display = 'none';
+    return;
+  }
+
+  empty.style.display = 'none';
+  stats.style.display = 'flex';
+  document.getElementById('statTotal').textContent = notes.length;
+  document.getElementById('statKw').textContent = [...new Set(notes.map(n=>n.keyword))].length;
+  document.getElementById('statTop').textContent = fmtNum(Math.max(...notes.map(n=>n.likes||0)));
+
+  grid.innerHTML = notes.map(n => `
+    <div class="card" onclick="window.open('${n.url||'#'}')">
+      <div class="card-body">
+        <div class="card-title">${n.title||'(无标题)'}</div>
+        <div class="card-meta">
+          <span>👍 ${fmtNum(n.likes||0)}</span>
+          <span>⭐ ${fmtNum(n.collects||0)}</span>
+          <span>💬 ${fmtNum(n.comments||0)}</span>
+        </div>
+        <div class="card-footer">
+          <span class="card-author">${n.author||'未知'}</span>
+          <span class="card-kw">${n.keyword||''}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function fmtNum(n) {
+  if (n >= 10000) return (n/10000).toFixed(1)+'w';
+  if (n >= 1000) return (n/1000).toFixed(1)+'k';
+  return String(n);
+}
+
+// ── 历史面板 ──
+async function toggleHistory() {
+  const overlay = document.getElementById('overlay');
+  const panel = document.getElementById('panel');
+  const show = !panel.classList.contains('show');
+  overlay.classList.toggle('show', show);
+  panel.classList.toggle('show', show);
+  if (show) {
+    const r = await fetch('/api/history');
+    const data = await r.json();
+    document.getElementById('panelList').innerHTML = data.map(d =>
+      `<div class="panel-item" onclick="loadHistory('${d.name}')">
+        <div class="time">${new Date(d.time).toLocaleString('zh-CN')}</div>
+        <div class="name">${d.name}</div>
+      </div>`
+    ).join('') || '<div style="padding:20px;color:#999;text-align:center">暂无历史</div>';
+  }
+}
+async function loadHistory(name) {
+  toggleHistory();
+  const r = await fetch('/api/history/' + name);
+  const data = await r.json();
+  if (data.ok) renderNotes(data.notes);
+}
+// hot reload: when page loads, check if there's existing data
+async function loadLatest() {
+  const r = await fetch('/api/history');
+  const data = await r.json();
+  if (data.length) {
+    const latest = await fetch('/api/history/' + data[0].name);
+    const d = await latest.json();
+    if (d.ok && d.notes.length) renderNotes(d.notes);
+  }
+}
+
+loadConfig();
+loadLatest();
+</script>
+</body>
+</html>

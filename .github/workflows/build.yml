@@ -1,0 +1,56 @@
+name: 构建 exe
+
+on:
+  push:
+    tags:
+      - "v*"          # 推送 v1.0.0 之类的 tag 时触发
+  workflow_dispatch:    # 也支持手动触发
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 安装依赖
+        run: pip install -r requirements.txt pyinstaller
+
+      - name: 安装 Playwright 浏览器
+        run: playwright install chromium
+
+      - name: PyInstaller 打包
+        run: pyinstaller build.spec --distpath dist --workpath build --noconfirm
+
+      - name: 复制浏览器内核
+        run: |
+          $browsers = "$env:USERPROFILE\AppData\Local\ms-playwright"
+          if (Test-Path $browsers) {
+            Copy-Item -Path $browsers -Destination "dist\小红书热点收集器\browsers" -Recurse -Force
+          }
+
+      - name: 创建启动器
+        run: |
+          '@echo off' + "`n" + 'start "" "%~dp0小红书热点收集器.exe"' | Out-File -FilePath "dist\小红书热点收集器\启动.bat" -Encoding Default
+
+      - name: 打包为 zip
+        run: |
+          Compress-Archive -Path "dist\小红书热点收集器\*" -DestinationPath "小红书热点收集器.zip"
+
+      - name: 上传 Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 小红书热点收集器
+          path: 小红书热点收集器.zip
+
+      - name: 创建 Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: 小红书热点收集器.zip
+          generate_release_notes: true

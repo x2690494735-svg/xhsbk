@@ -1,0 +1,19 @@
+# 监测关键词
+keywords:
+  - AI
+  - 认知升级
+  - 个人成长
+  - 副业
+  - 自媒体
+
+# 输出设置
+output:
+  dir: data
+  format: json
+
+# 爬取设置
+crawler:
+  headless: false       # 首次运行设 false 以便手动登录，之后改 true
+  max_notes: 30         # 每个关键词最多采集条数
+  timeout: 30           # 页面加载超时（秒）
+  user_data_dir: ./browser_data  # 浏览器数据持久化，登录一次即可
