@@ -27,11 +27,9 @@ jobs:
       - name: PyInstaller 打包
         run: pyinstaller build.spec --distpath dist --workpath build --noconfirm
 
-      - name: 列出输出目录
-        run: dir dist /s
-
       - name: 创建启动器
         run: |
+          New-Item -ItemType Directory -Force -Path "dist\xhs-hot"
           "@echo off`n`%~dp0xhs-hot.exe`npause" | Out-File -FilePath "dist\xhs-hot\启动.bat" -Encoding Default
 
       - name: 打包为 zip
