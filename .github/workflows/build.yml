@@ -24,26 +24,15 @@ jobs:
       - name: 安装依赖
         run: pip install -r requirements.txt pyinstaller
 
-      - name: 安装 Playwright 浏览器
-        run: playwright install chromium
-
       - name: PyInstaller 打包
         run: pyinstaller build.spec --distpath dist --workpath build --noconfirm
 
-      - name: 复制浏览器内核
-        run: |
-          $browsers = "$env:USERPROFILE\AppData\Local\ms-playwright"
-          if (Test-Path $browsers) {
-            Copy-Item -Path $browsers -Destination "dist\小红书热点收集器\browsers" -Recurse -Force
-          }
-
       - name: 创建启动器
         run: |
-          '@echo off' + "`n" + 'start "" "%~dp0小红书热点收集器.exe"' | Out-File -FilePath "dist\小红书热点收集器\启动.bat" -Encoding Default
+          "@echo off`n`%~dp0小红书热点收集器.exe`npause" | Out-File -FilePath "dist\小红书热点收集器\启动.bat" -Encoding Default
 
       - name: 打包为 zip
-        run: |
-          Compress-Archive -Path "dist\小红书热点收集器\*" -DestinationPath "小红书热点收集器.zip"
+        run: Compress-Archive -Path "dist\小红书热点收集器\*" -DestinationPath "小红书热点收集器.zip"
 
       - name: 上传 Artifact
         uses: actions/upload-artifact@v4

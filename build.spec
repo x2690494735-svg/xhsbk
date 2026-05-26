@@ -1,8 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-"""PyInstaller 打包配方 — 输出为一个独立文件夹，可直接分发"""
 
-import os
-import sys
 from pathlib import Path
 
 _PROJ = Path(".").resolve()
@@ -24,11 +21,6 @@ a = Analysis(
         "yaml",
         "playwright",
         "playwright.async_api",
-        "playwright._impl",
-        "playwright._impl._api_types",
-        "playwright._impl._browser",
-        "playwright._impl._browser_context",
-        "playwright._impl._page",
         "greenlet",
         "pyee",
         "pyee.asyncio",

@@ -1,16 +1,5 @@
-"""小红书热点收集器 — Web版"""
-
 import os
 import sys
-
-# PyInstaller exe 模式：确定根目录，设置 Playwright 浏览器路径
-FROZEN = getattr(sys, "frozen", False)
-ROOT = os.path.dirname(sys.executable) if FROZEN else os.path.dirname(__file__)
-
-if FROZEN:
-    os.environ["PLAYWRIGHT_BROWSERS_PATH"] = os.path.join(ROOT, "browsers")
-
-# ── 以下 import 必须在上面环境变量设置之后 ──
 import asyncio
 import json
 from datetime import datetime
@@ -22,6 +11,9 @@ from flask import Flask, jsonify, render_template, request
 from xhs.crawler import Crawler
 from xhs.storage import Store
 
+FROZEN = getattr(sys, "frozen", False)
+ROOT = os.path.dirname(sys.executable) if FROZEN else os.path.dirname(__file__)
+
 app = Flask(
     __name__,
     template_folder=os.path.join(ROOT, "templates"),
@@ -30,14 +22,10 @@ cfg_path = os.path.join(ROOT, "config.yaml")
 data_dir = os.path.join(ROOT, "data")
 
 
-# ── 页面 ──
-
 @app.route("/")
 def index():
     return render_template("index.html")
 
-
-# ── 采集 ──
 
 @app.route("/api/crawl", methods=["POST"])
 def crawl():
@@ -58,8 +46,6 @@ def crawl():
         "notes": ranked,
     })
 
-
-# ── 历史 ──
 
 @app.route("/api/history")
 def history():
@@ -88,8 +74,6 @@ def history_detail(name):
     return jsonify({"ok": True, "notes": ranked})
 
 
-# ── 配置 ──
-
 @app.route("/api/config", methods=["GET", "POST"])
 def config():
     if request.method == "GET":
@@ -103,5 +87,5 @@ def config():
 
 
 if __name__ == "__main__":
-    print("🔥 小红书热点收集器 → http://127.0.0.1:5000")
+    print("小红书热点收集器 -> http://127.0.0.1:5000")
     app.run(debug=False, port=5000)
