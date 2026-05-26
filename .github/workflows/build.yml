@@ -1,4 +1,4 @@
-name: 构建 exe
+name: "构建 exe"
 
 on:
   push:
@@ -12,56 +12,26 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: 安装 Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
-      - name: 安装依赖
+      - name: Install deps
         run: pip install -r requirements.txt pyinstaller
-
-      - name: PyInstaller 打包
-        run: |
-          pyinstaller --onedir `
-            --name xhs-hot `
-            --add-data "templates;templates" `
-            --add-data "config.yaml;." `
-            --collect-all playwright `
-            --collect-all greenlet `
-            --hidden-import flask `
-            --hidden-import flask.json `
-            --hidden-import jinja2 `
-            --hidden-import jinja2.ext `
-            --hidden-import yaml `
-            --hidden-import pyee `
-            --hidden-import pyee.asyncio `
-            --exclude-module tkinter `
-            --exclude-module matplotlib `
-            --exclude-module numpy `
-            --noconfirm `
-            --distpath dist `
-            --workpath build `
-            app.py
-
-      - name: 创建启动器
+      - name: Build exe
+        run: pyinstaller --onedir --name xhs-hot --add-data "templates;templates" --add-data "config.yaml;." --collect-all playwright --collect-all greenlet --hidden-import flask --hidden-import flask.json --hidden-import jinja2 --hidden-import jinja2.ext --hidden-import yaml --hidden-import pyee --hidden-import pyee.asyncio --exclude-module tkinter --exclude-module matplotlib --exclude-module numpy --noconfirm --distpath dist --workpath build app.py
+      - name: Create launcher
         run: |
           New-Item -ItemType Directory -Force -Path "dist\xhs-hot"
-          "@echo off`nstart http://127.0.0.1:5000`n`%~dp0xhs-hot.exe`npause" | Out-File -FilePath "dist\xhs-hot\启动.bat" -Encoding Default
-
-      - name: 打包为 zip
+          Set-Content -Path "dist\xhs-hot\启动.bat" -Value "@echo off`nstart http://127.0.0.1:5000`n`%~dp0xhs-hot.exe`npause"
+      - name: Zip
         run: Compress-Archive -Path "dist\xhs-hot\*" -DestinationPath "xhs-hot.zip"
-
-      - name: 上传 Artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: xhs-hot
           path: xhs-hot.zip
-
-      - name: 创建 Release
+      - name: Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
