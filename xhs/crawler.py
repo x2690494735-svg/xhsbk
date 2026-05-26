@@ -91,14 +91,16 @@ class Crawler:
                 for item in items:
                     nc = item.get("note_card", {}) or item.get("noteCard", {})
                     if nc:
-                        self.api_notes.append(self._parse_note_from_api(nc))
+                        fid = item.get("id", "")
+                        self.api_notes.append(self._parse_note_from_api(nc, fid))
             except Exception:
                 pass
 
-    def _parse_note_from_api(self, nc: dict) -> dict:
+    def _parse_note_from_api(self, nc: dict, fallback_id: str = "") -> dict:
+        nid = nc.get("note_id") or nc.get("noteId") or fallback_id
         return {
             "title": nc.get("display_title", ""),
-            "url": f"https://www.xiaohongshu.com/explore/{nc.get('note_id', '')}",
+            "url": f"https://www.xiaohongshu.com/explore/{nid}" if nid else "",
             "author": nc.get("user", {}).get("nickname", ""),
             "likes": int(nc.get("interact_info", {}).get("liked_count", 0)),
             "collects": int(nc.get("interact_info", {}).get("collected_count", 0)),

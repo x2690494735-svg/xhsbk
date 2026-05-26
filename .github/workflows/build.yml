@@ -50,7 +50,7 @@ jobs:
       - name: 创建启动器
         run: |
           New-Item -ItemType Directory -Force -Path "dist\xhs-hot"
-          "@echo off`n`%~dp0xhs-hot.exe`npause" | Out-File -FilePath "dist\xhs-hot\启动.bat" -Encoding Default
+          "@echo off`nstart http://127.0.0.1:5000`n`%~dp0xhs-hot.exe`npause" | Out-File -FilePath "dist\xhs-hot\启动.bat" -Encoding Default
 
       - name: 打包为 zip
         run: Compress-Archive -Path "dist\xhs-hot\*" -DestinationPath "xhs-hot.zip"

@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer">
 <title>小红书热点收集器</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -322,7 +323,7 @@
   const c = document.getElementById('bg');
   const ctx = c.getContext('2d');
   let w, h, particles = [];
-  const N = 60;
+  const N = 28;
 
   function resize() { w = c.width = window.innerWidth; h = c.height = window.innerHeight; }
   resize(); window.addEventListener('resize', resize);
@@ -330,8 +331,8 @@
   for (let i=0; i<N; i++) {
     particles.push({
       x: Math.random()*w, y: Math.random()*h,
-      vx: (Math.random()-.5)*0.3, vy: (Math.random()-.5)*0.3,
-      r: Math.random()*1.5+0.5
+      vx: (Math.random()-.5)*0.15, vy: (Math.random()-.5)*0.15,
+      r: Math.random()*1.2+0.8
     });
   }
 
@@ -345,16 +346,16 @@
 
       ctx.beginPath();
       ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      ctx.fillStyle = 'rgba(255,255,255,0.15)';
+      ctx.fillStyle = 'rgba(255,255,255,0.22)';
       ctx.fill();
 
       for (let j=i+1; j<N; j++) {
         const q = particles[j];
         const dx = p.x-q.x, dy = p.y-q.y, dist = Math.sqrt(dx*dx+dy*dy);
-        if (dist < 150) {
+        if (dist < 180) {
           ctx.beginPath();
           ctx.moveTo(p.x,p.y); ctx.lineTo(q.x,q.y);
-          ctx.strokeStyle = `rgba(255,255,255,${0.04*(1-dist/150)})`;
+          ctx.strokeStyle = `rgba(255,255,255,${0.06*(1-dist/180)})`;
           ctx.lineWidth = 0.5;
           ctx.stroke();
         }
