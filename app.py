@@ -33,9 +33,17 @@ app = Flask(
 cfg_path = os.path.join(WORK, "config.yaml")
 data_dir = os.path.join(WORK, "data")
 
-if FROZEN and not os.path.exists(cfg_path):
+if FROZEN:
     bundled_cfg = os.path.join(BUNDLE, "config.yaml")
-    if os.path.exists(bundled_cfg):
+    need_copy = not os.path.exists(cfg_path)
+    if not need_copy:
+        try:
+            with open(cfg_path, "r", encoding="utf-8") as f:
+                if "crawler" not in yaml.safe_load(f):
+                    need_copy = True
+        except Exception:
+            need_copy = True
+    if need_copy and os.path.exists(bundled_cfg):
         shutil.copy(bundled_cfg, cfg_path)
 
 
@@ -98,8 +106,12 @@ def config():
             return jsonify(yaml.safe_load(f))
     else:
         data = request.get_json()
-        with open(cfg_path, "w", encoding="utf-8") as f:
-            yaml.dump(data, f, allow_unicode=True, default_flow_style=False)
+        if data and "keywords" in data:
+            with open(cfg_path, "r", encoding="utf-8") as f:
+                full = yaml.safe_load(f)
+            full["keywords"] = data["keywords"]
+            with open(cfg_path, "w", encoding="utf-8") as f:
+                yaml.dump(full, f, allow_unicode=True, default_flow_style=False)
         return jsonify({"ok": True})
 
 
