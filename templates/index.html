@@ -521,7 +521,7 @@ function render(notes) {
             <span class="card-author"><em>@</em>${n.author||'未知'}</span>
             <span class="card-kw">${n.keyword||''}</span>
           </div>
-          ${hasDesc ? `<div class="card-desc">${desc}</div><div class="card-expand-hint">展开阅读</div>` : `<a class="card-ext-link" href="${n.url||'#'}" target="_blank" onclick="event.stopPropagation()">查看原文</a>`}
+          ${hasDesc ? `<div class="card-desc">${desc}</div><div class="card-expand-hint">展开阅读</div>` : '<div class="card-no-desc">原文自查</div>'}
         </div>
       </div>`;
   }).join('');
