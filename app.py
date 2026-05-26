@@ -108,7 +108,6 @@ if __name__ == "__main__":
     try:
         url = "http://127.0.0.1:5000"
         print(f"小红书热点收集器 -> {url}")
-        webbrowser.open(url)
         app.run(debug=False, port=5000)
     except Exception:
         with open(LOG, "w", encoding="utf-8") as f:

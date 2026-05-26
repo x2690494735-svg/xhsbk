@@ -288,68 +288,105 @@
   const c = document.getElementById('bg');
   const ctx = c.getContext('2d');
   let w, h, stars = [];
-  const STAR_N = 110;
-  let mx = -999, my = -999;
+  const STAR_N = 130;
+  let mx = -999, my = -999, nebulaBlobs = [];
+  const NEBULA_N = 4;
 
-  function resize() { w = c.width = window.innerWidth; h = c.height = window.innerHeight; seedStars(); }
+  function resize() { w = c.width = window.innerWidth; h = c.height = window.innerHeight; seedAll(); }
   resize(); window.addEventListener('resize', resize);
   document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
   document.addEventListener('mouseleave', () => { mx = -999; my = -999; });
 
-  function seedStars() {
-    stars = [];
-    for (let i=0; i<STAR_N; i++) {
-      stars.push({
+  function seedNebula() {
+    nebulaBlobs = [];
+    for (let i=0; i<NEBULA_N; i++) {
+      nebulaBlobs.push({
         x: Math.random()*w, y: Math.random()*h,
-        r: Math.random()<.06 ? Math.random()*2.4+1.2 : Math.random()*1+0.2,
-        twinkle: Math.random()*Math.PI*2,
-        speed: Math.random()*.015+.004,
-        baseAlpha: Math.random()*.25+.12
+        r: Math.random()*180+80,
+        vx: (Math.random()-.5)*0.08, vy: (Math.random()-.5)*0.08,
+        hue: Math.random()<.5 ? 40 : 210,
+        alpha: Math.random()*.015+.005
       });
     }
   }
 
+  function seedAll() {
+    stars = [];
+    for (let i=0; i<STAR_N; i++) {
+      const rnd = Math.random();
+      stars.push({
+        x: Math.random()*w, y: Math.random()*h,
+        r: rnd<.04 ? Math.random()*2.8+1.8 : rnd<.15 ? Math.random()*1.5+.6 : Math.random()*.9+.2,
+        twinkle: Math.random()*Math.PI*2,
+        speed: Math.random()*.02+.003,
+        hue: rnd<.3 ? 210 : rnd<.6 ? 42 : 0,
+        baseAlpha: Math.random()*.25+.12
+      });
+    }
+    seedNebula();
+  }
+
   function draw() {
     ctx.clearRect(0,0,w,h);
+
+    for (const nb of nebulaBlobs) {
+      nb.x += nb.vx; nb.y += nb.vy;
+      if (nb.x<-200) nb.x = w+200; if (nb.x>w+200) nb.x = -200;
+      if (nb.y<-200) nb.y = h+200; if (nb.y>h+200) nb.y = -200;
+      const grad = ctx.createRadialGradient(nb.x,nb.y,0, nb.x,nb.y,nb.r);
+      const c = nb.hue===40 ? `200,168,96` : `120,150,200`;
+      grad.addColorStop(0, `rgba(${c},${nb.alpha})`);
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(nb.x-nb.r, nb.y-nb.r, nb.r*2, nb.r*2);
+    }
 
     for (let i=0; i<STAR_N; i++) {
       const s = stars[i];
       s.twinkle += s.speed;
       const dx = s.x-mx, dy = s.y-my;
       const hoverDist = Math.sqrt(dx*dx+dy*dy);
-      const glow = hoverDist < 200 ? (1-hoverDist/200)*1.8 : 0;
-      const r = s.r + glow*1.5;
-      const alpha = Math.min(1, s.baseAlpha + Math.sin(s.twinkle)*.1 + glow*.5);
+      const glow = hoverDist < 220 ? Math.pow(1-hoverDist/220, 2)*2 : 0;
+      const r = s.r + glow*2;
+      const alpha = Math.min(1, s.baseAlpha + Math.sin(s.twinkle)*.1 + glow*.4);
 
+      const h = s.hue;
+      const rgb = h===210 ? '160,180,220' : h===42 ? '220,200,150' : '215,210,195';
       ctx.beginPath();
       ctx.arc(s.x, s.y, r, 0, Math.PI*2);
-      const goldMix = glow > .3 ? `rgba(220,200,150,${alpha})` : `rgba(210,200,175,${Math.max(0.04, alpha)})`;
-      ctx.fillStyle = goldMix;
+      ctx.fillStyle = `rgba(${rgb},${Math.max(0.04, alpha)})`;
       ctx.fill();
 
-      if (r > 1 || glow > .2) {
+      if (r > 1.2 || glow > .15) {
+        const glowR = r*4;
+        const glowGrad = ctx.createRadialGradient(s.x,s.y,0, s.x,s.y,glowR);
+        glowGrad.addColorStop(0, `rgba(${rgb},${Math.max(0.02, alpha*.2)})`);
+        glowGrad.addColorStop(1, 'rgba(0,0,0,0)');
         ctx.beginPath();
-        ctx.arc(s.x, s.y, r*3, 0, Math.PI*2);
-        ctx.fillStyle = `rgba(200,168,96,${Math.max(0.01, alpha*.3+glow*.15)})`;
+        ctx.arc(s.x, s.y, glowR, 0, Math.PI*2);
+        ctx.fillStyle = glowGrad;
         ctx.fill();
       }
     }
 
     for (let i=0; i<STAR_N; i++) {
+      const a = stars[i];
       for (let j=i+1; j<STAR_N; j++) {
-        const a = stars[i], b = stars[j];
+        const b = stars[j];
         const dx = a.x-b.x, dy = a.y-b.y, dist = Math.sqrt(dx*dx+dy*dy);
-        const dax = a.x-mx, day = a.y-my, da = Math.sqrt(dax*dax+day*day);
-        const dbx = b.x-mx, dby = b.y-my, db = Math.sqrt(dbx*dbx+dby*dby);
-        const nearMouse = da < 180 || db < 180;
-        const baseDist = nearMouse ? 140 : 80;
-        const baseAlpha = nearMouse ? 0.12 : 0.03;
-        if (dist < baseDist) {
-          const a1 = baseAlpha*(1-dist/baseDist);
+        const adx = a.x-mx, ady = a.y-my, adist = Math.sqrt(adx*adx+ady*ady);
+        const bdist = Math.sqrt((b.x-mx)**2+(b.y-my)**2);
+        const near = Math.min(adist, bdist);
+        const maxDist = near<200 ? 160 : 100;
+        const baseAlpha = near<200 ? 0.14 : 0.04;
+        const baseWidth = near<200 ? 0.8 : 0.2;
+
+        if (dist < maxDist && (a.r>0.8 || b.r>0.8 || near<200)) {
+          const a1 = baseAlpha*(1-dist/maxDist);
           ctx.beginPath();
           ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
           ctx.strokeStyle = `rgba(200,168,96,${a1})`;
-          ctx.lineWidth = nearMouse ? 0.7 : 0.25;
+          ctx.lineWidth = baseWidth;
           ctx.stroke();
         }
       }
