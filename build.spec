@@ -1,17 +1,21 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 from pathlib import Path
+from PyInstaller.utils.hooks import collect_all
 
 _PROJ = Path(".").resolve()
+
+p_bins, p_datas, p_hidden = collect_all("playwright")
+g_bins, g_datas, g_hidden = collect_all("greenlet")
 
 a = Analysis(
     ["app.py"],
     pathex=[str(_PROJ)],
-    binaries=[],
+    binaries=p_bins + g_bins,
     datas=[
         ("templates", "templates"),
         ("config.yaml", "."),
-    ],
+    ] + p_datas + g_datas,
     hiddenimports=[
         "flask",
         "flask.json",
@@ -19,12 +23,10 @@ a = Analysis(
         "jinja2.ext",
         "markupsafe",
         "yaml",
-        "playwright",
-        "playwright.async_api",
         "greenlet",
         "pyee",
         "pyee.asyncio",
-    ],
+    ] + p_hidden + g_hidden,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
