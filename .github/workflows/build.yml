@@ -1,9 +1,8 @@
-name: build-exe
+name: build
 
 on:
   push:
-    tags:
-      - "v*"
+    tags: ["v*"]
   workflow_dispatch:
 
 permissions:
@@ -18,7 +17,8 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt pyinstaller
-      - run: pyinstaller --onedir --name xhs-hot --add-data "templates;templates" --add-data "config.yaml;." --collect-all playwright --collect-all greenlet --hidden-import flask --hidden-import flask.json --hidden-import jinja2 --hidden-import jinja2.ext --hidden-import yaml --hidden-import pyee --hidden-import pyee.asyncio --exclude-module tkinter --exclude-module matplotlib --exclude-module numpy --noconfirm --distpath dist --workpath build app.py
+      - run: |
+          pyinstaller --onedir --name xhs-hot --add-data "templates;templates" --add-data "config.yaml;." --collect-all playwright --collect-all greenlet --hidden-import flask --hidden-import flask.json --hidden-import jinja2 --hidden-import jinja2.ext --hidden-import yaml --noconfirm --distpath dist --workpath build app.py
       - run: |
           New-Item -ItemType Directory -Force -Path "dist\xhs-hot"
           Set-Content -Path "dist\xhs-hot\start.bat" -Value "@echo off`nstart http://127.0.0.1:5000`n`%~dp0xhs-hot.exe`npause"
@@ -31,4 +31,3 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: xhs-hot.zip
-          generate_release_notes: true
