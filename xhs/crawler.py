@@ -4,80 +4,7 @@ import os
 import sys
 import yaml
 from pathlib import Path
-from playwright.async_api import async_playwright, Browser, Page, BrowserContext
-
-_browser: Browser | None = None
-_page: Page | None = None
-_context: BrowserContext | None = None
-_pw = None
-_state_path = None
-_active_crawler: "Crawler | None" = None
-
-
-async def _ensure_browser(config_path: str = "config.yaml"):
-    global _browser, _page, _pw, _context, _state_path, _active_crawler
-
-    if _page and not _page.is_closed():
-        return _page
-
-    with open(config_path, "r", encoding="utf-8") as f:
-        cfg = yaml.safe_load(f)
-
-    base = os.path.dirname(sys.executable) if getattr(sys, "frozen", False) else os.path.dirname(config_path)
-    user_dir = Path(base) / cfg["crawler"]["user_data_dir"]
-    user_dir.mkdir(parents=True, exist_ok=True)
-    _state_path = str(user_dir / "state.json")
-
-    _pw = await async_playwright().start()
-
-    channels = ["chrome", "msedge", None]
-    for ch in channels:
-        try:
-            launch_args = {
-                "headless": cfg["crawler"]["headless"],
-                "args": ["--disable-blink-features=AutomationControlled", "--no-sandbox"],
-            }
-            if ch:
-                launch_args["channel"] = ch
-            _browser = await _pw.chromium.launch(**launch_args)
-            print(f"使用浏览器: {ch or 'chromium'}")
-            break
-        except Exception:
-            continue
-    else:
-        raise RuntimeError("未找到可用浏览器")
-
-    loaded_state = None
-    if Path(_state_path).exists():
-        loaded_state = _state_path
-        print(f"加载登录态: {_state_path}")
-
-    _context = await _browser.new_context(
-        viewport={"width": 1440, "height": 900},
-        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        storage_state=loaded_state,
-    )
-    await _context.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined});")
-    _page = await _context.new_page()
-
-    async def _handler(response):
-        if _active_crawler:
-            await _active_crawler._on_response(response)
-
-    _page.on("response", _handler)
-    return _page
-
-
-def _save_state():
-    if _context and _state_path:
-        st = _context.storage_state()
-        with open(_state_path, "w", encoding="utf-8") as f:
-            json.dump(st, f, ensure_ascii=False, indent=2)
-
-
-async def navigate_to(url: str, config_path: str = "config.yaml"):
-    page = await _ensure_browser(config_path)
-    await page.goto(url, timeout=30000)
+from playwright.async_api import async_playwright
 
 
 class Crawler:
@@ -88,25 +15,75 @@ class Crawler:
         self.keywords = self.cfg["keywords"]
         self.max_notes = self.cfg["crawler"]["max_notes"]
         self.timeout = self.cfg["crawler"]["timeout"]
+        self.headless = self.cfg["crawler"]["headless"]
         self.api_notes: list[dict] = []
 
+        frozen = getattr(sys, "frozen", False)
+        base = os.path.dirname(sys.executable) if frozen else os.path.dirname(config_path)
+        self.state_file = str(Path(base) / self.cfg["crawler"]["user_data_dir"] / "state.json")
+        Path(self.state_file).parent.mkdir(parents=True, exist_ok=True)
+
     async def run(self) -> list[dict]:
-        global _active_crawler
         all_notes: list[dict] = []
-        page = await _ensure_browser()
-        _active_crawler = self
 
-        await self._wait_for_login(page)
-        _save_state()
+        async with async_playwright() as p:
+            browser = await self._launch(p)
+            context = await self._create_context(browser)
+            page = await context.new_page()
+            page.on("response", self._on_response)
 
-        for kw in self.keywords:
-            print(f"搜索关键词: {kw}")
-            notes = await self._search(page, kw)
-            all_notes.extend(notes)
-            print(f"  -> {len(notes)} 条")
+            await self._wait_for_login(page)
+            self._save_state(context)
 
-        _save_state()
+            for kw in self.keywords:
+                print(f"搜索关键词: {kw}")
+                notes = await self._search(page, kw)
+                all_notes.extend(notes)
+                print(f"  -> {len(notes)} 条")
+
+            self._save_state(context)
+            await browser.close()
+
         return all_notes
+
+    async def _launch(self, browser_type):
+        channels = ["chrome", "msedge", None]
+        last_error = None
+        for ch in channels:
+            try:
+                args = {
+                    "headless": self.headless,
+                    "args": ["--disable-blink-features=AutomationControlled", "--no-sandbox"],
+                }
+                if ch:
+                    args["channel"] = ch
+                browser = await browser_type.chromium.launch(**args)
+                print(f"使用浏览器: {ch or 'chromium'}")
+                return browser
+            except Exception as e:
+                last_error = e
+                continue
+        raise last_error or RuntimeError("未找到可用浏览器")
+
+    async def _create_context(self, browser):
+        loaded = self.state_file if os.path.exists(self.state_file) else None
+        if loaded:
+            print(f"加载登录态: {self.state_file}")
+        context = await browser.new_context(
+            viewport={"width": 1440, "height": 900},
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            storage_state=loaded,
+        )
+        await context.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined});")
+        return context
+
+    def _save_state(self, context):
+        try:
+            st = context.storage_state()
+            with open(self.state_file, "w", encoding="utf-8") as f:
+                json.dump(st, f, ensure_ascii=False, indent=2)
+        except Exception:
+            pass
 
     async def _wait_for_login(self, page):
         await page.goto("https://www.xiaohongshu.com/explore", timeout=self.timeout * 1000)
@@ -119,7 +96,6 @@ class Crawler:
                 await asyncio.sleep(1)
                 if not await page.query_selector(".login-btn, .login-container, [class*=login]"):
                     print("登录成功")
-                    _save_state()
                     break
 
     async def _search(self, page, keyword: str) -> list[dict]:

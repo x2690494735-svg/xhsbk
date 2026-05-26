@@ -18,18 +18,13 @@ try:
     import yaml
     from flask import Flask, jsonify, render_template, request
 
-    from xhs.crawler import Crawler, navigate_to
+    from xhs.crawler import Crawler
     from xhs.storage import Store
 except Exception:
     with open(LOG, "w", encoding="utf-8") as f:
         f.write(traceback.format_exc())
     print(f"启动失败，详情见 {LOG}")
     sys.exit(1)
-
-_loop = asyncio.new_event_loop()
-
-def _run(coro):
-    return _loop.run_until_complete(coro)
 
 app = Flask(
     __name__,
@@ -53,7 +48,7 @@ def index():
 def crawl():
     crawler = Crawler(cfg_path)
     try:
-        notes = _run(crawler.run())
+        notes = asyncio.run(crawler.run())
     except Exception as e:
         return jsonify({"ok": False, "error": str(e), "notes": []})
 
@@ -94,14 +89,6 @@ def history_detail(name):
         notes = json.load(f)
     ranked = sorted(notes, key=lambda n: n.get("likes", 0), reverse=True)
     return jsonify({"ok": True, "notes": ranked})
-
-
-@app.route("/api/navigate")
-def navigate():
-    url = request.args.get("url", "")
-    if url:
-        _run(navigate_to(url, cfg_path))
-    return jsonify({"ok": True})
 
 
 @app.route("/api/config", methods=["GET", "POST"])
