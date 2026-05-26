@@ -26,6 +26,11 @@ except Exception:
     print(f"启动失败，详情见 {LOG}")
     sys.exit(1)
 
+_loop = asyncio.new_event_loop()
+
+def _run(coro):
+    return _loop.run_until_complete(coro)
+
 app = Flask(
     __name__,
     template_folder=os.path.join(BUNDLE, "templates"),
@@ -48,7 +53,7 @@ def index():
 def crawl():
     crawler = Crawler(cfg_path)
     try:
-        notes = asyncio.run(crawler.run())
+        notes = _run(crawler.run())
     except Exception as e:
         return jsonify({"ok": False, "error": str(e), "notes": []})
 
@@ -95,7 +100,7 @@ def history_detail(name):
 def navigate():
     url = request.args.get("url", "")
     if url:
-        asyncio.run(navigate_to(url, cfg_path))
+        _run(navigate_to(url, cfg_path))
     return jsonify({"ok": True})
 
 
