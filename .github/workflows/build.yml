@@ -3,8 +3,11 @@ name: 构建 exe
 on:
   push:
     tags:
-      - "v*"          # 推送 v1.0.0 之类的 tag 时触发
-  workflow_dispatch:    # 也支持手动触发
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
