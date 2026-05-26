@@ -3,91 +3,234 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🔥 小红书热点收集器</title>
+<title>小红书热点收集器</title>
 <style>
   :root {
-    --red: #ff2442;
-    --red-light: #ff6b81;
-    --bg: #fafafa;
-    --card: #fff;
-    --text: #222;
-    --text-sub: #888;
-    --shadow: 0 2px 12px rgba(0,0,0,.06);
-    --radius: 12px;
+    --bg: #0a0a0c;
+    --surface: #141418;
+    --card: #1a1a20;
+    --border: #2a2a32;
+    --text: #e0e0e0;
+    --sub: #707078;
+    --red: #ff3b4e;
+    --gold: #c0a060;
+    --silver: #8899aa;
+    --bronze: #b88860;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
-  .container { max-width:1100px; margin:0 auto; padding:20px 24px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 1200px; margin:0 auto; padding: 28px 24px; }
 
-  /* header */
-  header { text-align:center; padding:32px 0 20px; }
-  header h1 { font-size:28px; font-weight:800; color:var(--red); letter-spacing:-0.5px; }
-  header p { color:var(--text-sub); margin-top:6px; font-size:14px; }
+  header { padding: 40px 0 16px; }
+  header h1 {
+    font-family: "Noto Serif SC", "STSong", "SimSun", serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 2px;
+  }
+  header p { color: var(--sub); margin-top: 6px; font-size: 14px; letter-spacing: 1px; }
 
-  /* 关键词区 */
-  .kw-bar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:center; margin-bottom:20px; }
-  .kw-tag { background:var(--card); border:1px solid #eee; border-radius:20px; padding:6px 14px; font-size:13px; cursor:pointer; transition:.2s; display:flex; align-items:center; gap:4px; }
-  .kw-tag:hover { border-color:var(--red-light); }
-  .kw-tag .del { color:#ccc; font-size:16px; line-height:1; }
-  .kw-tag .del:hover { color:var(--red); }
+  .controls { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin: 28px 0 20px; }
+
+  .kw-bar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; flex:1; }
+  .kw-tag {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: .2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--text);
+  }
+  .kw-tag:hover { border-color: var(--red); }
+  .kw-tag .del { color: var(--sub); font-size: 16px; line-height:1; }
+  .kw-tag .del:hover { color: var(--red); }
   .kw-add { display:flex; gap:4px; }
-  .kw-add input { border:1px dashed #ccc; border-radius:20px; padding:6px 12px; font-size:13px; width:100px; outline:none; }
-  .kw-add input:focus { border-color:var(--red); }
-  .kw-add button { background:var(--red); color:#fff; border:none; border-radius:20px; padding:6px 12px; font-size:13px; cursor:pointer; white-space:nowrap; }
+  .kw-add input {
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 13px;
+    width: 100px;
+    outline: none;
+    color: var(--text);
+  }
+  .kw-add input:focus { border-color: var(--red); }
+  .kw-add button {
+    background: var(--red);
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
 
-  /* 操作按钮 */
-  .actions { text-align:center; margin-bottom:28px; }
-  .btn-crawl { background:var(--red); color:#fff; border:none; padding:12px 48px; font-size:16px; font-weight:600; border-radius:28px; cursor:pointer; transition:.2s; letter-spacing:1px; }
-  .btn-crawl:hover { background:#e0203e; transform:translateY(-1px); box-shadow:0 4px 16px rgba(255,36,66,.3); }
-  .btn-crawl:disabled { background:#ccc; cursor:not-allowed; transform:none; box-shadow:none; }
-  .btn-history { background:none; border:1px solid #ddd; color:#666; padding:10px 28px; font-size:14px; border-radius:28px; cursor:pointer; margin-left:12px; }
+  .actions { display:flex; gap:8px; align-items:center; }
+  .btn-crawl {
+    background: var(--red);
+    color: #fff;
+    border: none;
+    padding: 10px 36px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 24px;
+    cursor: pointer;
+    transition: .2s;
+    letter-spacing: 1px;
+  }
+  .btn-crawl:hover { background: #e03040; }
+  .btn-crawl:disabled { background: #3a3a3a; cursor: not-allowed; color: #666; }
+  .btn-history {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--sub);
+    padding: 10px 20px;
+    font-size: 13px;
+    border-radius: 24px;
+    cursor: pointer;
+    transition: .2s;
+  }
+  .btn-history:hover { color: var(--text); border-color: var(--sub); }
 
-  /* 加载动画 */
-  .spinner { display:none; width:20px; height:20px; border:3px solid #fff; border-top-color:transparent; border-radius:50%; animation:spin .6s linear infinite; margin-right:8px; vertical-align:middle; }
-  .loading .spinner { display:inline-block; }
-  @keyframes spin { to { transform:rotate(360deg); } }
+  .status-bar {
+    text-align: center;
+    padding: 12px 0;
+    font-size: 14px;
+    color: var(--sub);
+    min-height: 20px;
+    transition: .3s;
+  }
+  .status-bar.active { color: var(--red); }
+  .pulse { display:none; width:6px; height:6px; background:var(--red); border-radius:50%; margin-right:8px; vertical-align:middle; animation:pulse 1s ease infinite; }
+  .active .pulse { display:inline-block; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.2} }
 
-  /* 状态提示 */
-  .status { text-align:center; color:var(--text-sub); font-size:14px; margin-bottom:16px; min-height:20px; }
+  .sort-bar { display:none; justify-content:flex-end; gap:4px; margin-bottom:16px; }
+  .sort-bar button {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--sub);
+    padding: 5px 14px;
+    font-size: 12px;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: .2s;
+  }
+  .sort-bar button:hover { color: var(--text); border-color: var(--sub); }
+  .sort-bar button.on { background: var(--surface); color: var(--red); border-color: var(--red); }
 
-  /* 结果统计 */
-  .stats { display:none; justify-content:center; gap:24px; margin-bottom:24px; }
+  .stats { display:none; justify-content:center; gap:40px; margin-bottom: 28px; padding: 20px 0; border-bottom:1px solid var(--border); border-top:1px solid var(--border); }
   .stat-item { text-align:center; }
-  .stat-num { font-size:32px; font-weight:800; color:var(--red); }
-  .stat-label { font-size:12px; color:var(--text-sub); }
+  .stat-num { font-size:36px; font-weight:800; color:#fff; font-variant-numeric:tabular-nums; }
+  .stat-label { font-size:11px; color:var(--sub); margin-top:2px; letter-spacing:1px; }
 
-  /* 笔记卡片 */
-  .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:16px; }
-  .card { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; transition:.2s; cursor:pointer; border:1px solid transparent; }
-  .card:hover { transform:translateY(-2px); box-shadow:0 6px 24px rgba(0,0,0,.1); border-color:#ffe0e0; }
-  .card-body { padding:16px; }
-  .card-title { font-size:15px; font-weight:600; line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-  .card-meta { display:flex; gap:16px; margin-top:12px; font-size:13px; color:var(--text-sub); }
-  .card-meta span { display:flex; align-items:center; gap:4px; }
-  .card-footer { display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:12px; border-top:1px solid #f5f5f5; }
-  .card-author { font-size:13px; color:#555; }
-  .card-author:before { content:"@"; color:var(--red-light); }
-  .card-kw { font-size:11px; background:#fff0f0; color:var(--red); padding:2px 8px; border-radius:10px; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap:20px; }
 
-  /* 空状态 */
-  .empty { text-align:center; padding:80px 0; color:var(--text-sub); }
-  .empty .icon { font-size:64px; margin-bottom:16px; }
+  .card {
+    background: var(--card);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: .25s;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    position: relative;
+  }
+  .card:hover { transform:translateY(-3px); border-color:#444; }
+  .card-rank {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 2;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    background: rgba(0,0,0,.5);
+    backdrop-filter: blur(4px);
+  }
+  .card-rank.top1 { background: var(--gold); color:#000; }
+  .card-rank.top2 { background: var(--silver); color:#000; }
+  .card-rank.top3 { background: var(--bronze); color:#000; }
 
-  /* 历史面板 */
-  .overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.3); z-index:99; }
+  .card-cover {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    background: var(--surface);
+    display: block;
+  }
+  .card-cover-fallback {
+    width: 100%;
+    height: 180px;
+    background: linear-gradient(135deg, #1a1a24 0%, #222030 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--sub);
+    font-size: 40px;
+  }
+  .card-body { padding: 16px; }
+  .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.6;
+    color: #e8e8e8;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .card-meta { display:flex; gap:20px; margin-top:12px; font-size:13px; color:var(--sub); }
+  .card-meta span { display:flex; align-items:center; gap:5px; }
+  .card-footer { display:flex; justify-content:space-between; align-items:center; margin-top:14px; padding-top:14px; border-top:1px solid var(--border); }
+  .card-author { font-size:13px; color:#888; }
+  .card-author span { color: var(--red); }
+  .card-kw { font-size:11px; background: rgba(255,59,78,.12); color:var(--red); padding:3px 10px; border-radius:10px; }
+
+  .empty-state { text-align:center; padding:100px 0; color:var(--sub); }
+  .empty-state p { margin-top:16px; font-size:14px; letter-spacing:1px; }
+
+  .overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.5); z-index:99; backdrop-filter:blur(2px); }
   .overlay.show { display:block; }
-  .panel { position:fixed; right:0; top:0; width:360px; height:100%; background:var(--card); box-shadow:-4px 0 24px rgba(0,0,0,.08); z-index:100; overflow-y:auto; transform:translateX(100%); transition:.3s; }
+  .panel {
+    position:fixed; right:0; top:0; width:380px; height:100%;
+    background: var(--surface); border-left:1px solid var(--border);
+    z-index:100; overflow-y:auto; transform:translateX(100%); transition:.3s;
+  }
   .panel.show { transform:translateX(0); }
-  .panel-header { padding:20px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; position:sticky; top:0; background:var(--card); }
-  .panel-close { background:none; border:none; font-size:24px; cursor:pointer; color:#999; }
-  .panel-item { padding:14px 20px; border-bottom:1px solid #f5f5f5; cursor:pointer; transition:.15s; }
-  .panel-item:hover { background:#fafafa; }
-  .panel-item .time { font-size:12px; color:var(--text-sub); }
-  .panel-item .name { font-size:14px; font-weight:500; margin-top:2px; }
+  .panel-header { padding:24px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--surface); }
+  .panel-header strong { color: #fff; font-size: 16px; }
+  .panel-close { background:none; border:none; font-size:22px; cursor:pointer; color:var(--sub); }
+  .panel-item { padding:16px 20px; border-bottom:1px solid var(--border); cursor:pointer; transition:.15s; }
+  .panel-item:hover { background:var(--card); }
+  .panel-item .time { font-size:12px; color:var(--sub); }
+  .panel-item .name { font-size:14px; font-weight:500; margin-top:4px; color: var(--text); }
 
   @media (max-width: 640px) {
     .grid { grid-template-columns:1fr; }
     .panel { width:100%; }
+    .controls { flex-direction:column; align-items:stretch; }
+    .actions { justify-content:center; }
+    header h1 { font-size: 24px; }
   }
 </style>
 </head>
@@ -95,49 +238,49 @@
 
 <div class="container">
   <header>
-    <h1>🔥 小红书热点收集器</h1>
-    <p>追踪你关注的领域，发现正在流行的话题</p>
+    <h1>小红书热点收集器</h1>
+    <p>追踪你关注的领域，发现正在流行的声音</p>
   </header>
 
-  <!-- 关键词管理 -->
-  <div class="kw-bar" id="kwBar"></div>
-
-  <!-- 操作 -->
-  <div class="actions">
-    <button class="btn-crawl" id="btnCrawl" onclick="startCrawl()">
-      <span class="spinner"></span>开始采集
-    </button>
-    <button class="btn-history" onclick="toggleHistory()">📂 历史记录</button>
+  <div class="controls">
+    <div class="kw-bar" id="kwBar"></div>
+    <div class="actions">
+      <button class="btn-crawl" id="btnCrawl" onclick="startCrawl()">开始采集</button>
+      <button class="btn-history" onclick="toggleHistory()">历史</button>
+    </div>
   </div>
 
-  <!-- 状态 -->
-  <div class="status" id="status"></div>
+  <div class="status-bar" id="statusBar"><span class="pulse"></span><span id="statusText"></span></div>
 
-  <!-- 统计 -->
+  <div class="sort-bar" id="sortBar">
+    <button onclick="sortBy('likes', this)" class="on">点赞</button>
+    <button onclick="sortBy('collects', this)">收藏</button>
+    <button onclick="sortBy('comments', this)">评论</button>
+  </div>
+
   <div class="stats" id="stats">
-    <div class="stat-item"><div class="stat-num" id="statTotal">0</div><div class="stat-label">总条数</div></div>
-    <div class="stat-item"><div class="stat-num" id="statKw">0</div><div class="stat-label">关键词数</div></div>
-    <div class="stat-item"><div class="stat-num" id="statTop">0</div><div class="stat-label">最高点赞</div></div>
+    <div class="stat-item"><div class="stat-num" id="statTotal">—</div><div class="stat-label">总条数</div></div>
+    <div class="stat-item"><div class="stat-num" id="statKw">—</div><div class="stat-label">关键词</div></div>
+    <div class="stat-item"><div class="stat-num" id="statTop">—</div><div class="stat-label">最高点赞</div></div>
   </div>
 
-  <!-- 结果 -->
   <div class="grid" id="grid"></div>
-  <div class="empty" id="empty"><div class="icon">📭</div><p>点「开始采集」获取小红书热点</p></div>
+  <div class="empty-state" id="empty"><p>尚未采集，点击「开始采集」获取热点</p></div>
 </div>
 
-<!-- 历史面板遮罩 -->
 <div class="overlay" id="overlay" onclick="toggleHistory()"></div>
 <div class="panel" id="panel">
   <div class="panel-header">
-    <strong>📂 历史记录</strong>
+    <strong>历史记录</strong>
     <button class="panel-close" onclick="toggleHistory()">&times;</button>
   </div>
   <div id="panelList"></div>
 </div>
 
 <script>
-// ── 关键词 ──
 let keywords = ['AI','认知升级','个人成长'];
+let allNotes = [];
+let sortKey = 'likes';
 
 async function loadConfig() {
   try {
@@ -155,13 +298,12 @@ function saveConfig() {
   });
 }
 function renderKw() {
-  const bar = document.getElementById('kwBar');
-  bar.innerHTML = keywords.map((k,i) =>
+  document.getElementById('kwBar').innerHTML = keywords.map((k,i) =>
     `<span class="kw-tag" onclick="editKw(${i})">${k}<span class="del" onclick="event.stopPropagation();delKw(${i})">&times;</span></span>`
   ).join('') + `
     <span class="kw-add">
-      <input id="kwInput" placeholder="新关键词" onkeydown="if(event.key==='Enter')addKw()">
-      <button onclick="addKw()">+ 添加</button>
+      <input id="kwInput" placeholder="添加关键词" onkeydown="if(event.key==='Enter')addKw()">
+      <button onclick="addKw()">+</button>
     </span>`;
 }
 function addKw() {
@@ -173,66 +315,94 @@ function addKw() {
 function delKw(i) { keywords.splice(i,1); renderKw(); saveConfig(); }
 function editKw(i) {
   const n = prompt('修改关键词', keywords[i]);
-  if (n && n.trim()) { keywords[i] = n.trim(); renderKw(); saveConfig(); }
+  if (n?.trim()) { keywords[i] = n.trim(); renderKw(); saveConfig(); }
 }
 
-// ── 采集 ──
 async function startCrawl() {
   const btn = document.getElementById('btnCrawl');
-  const status = document.getElementById('status');
+  const bar = document.getElementById('statusBar');
+  const txt = document.getElementById('statusText');
   btn.disabled = true;
-  btn.classList.add('loading');
-  status.textContent = '⏳ 正在采集，浏览器窗口打开中…';
+  bar.classList.add('active');
+  txt.textContent = `正在采集 ${keywords.length} 个关键词...`;
 
   try {
     const r = await fetch('/api/crawl', { method:'POST' });
     const data = await r.json();
-    if (!data.ok) { status.textContent = '⚠️ ' + data.error; return; }
-    status.textContent = `✅ 采集完成，共 ${data.total} 条`;
-    renderNotes(data.notes);
+    bar.classList.remove('active');
+    if (!data.ok) { txt.textContent = data.error; return; }
+    txt.textContent = `采集完成，共 ${data.total} 条`;
+    allNotes = data.notes;
+    render(allNotes);
   } catch(e) {
-    status.textContent = '❌ 连接失败，请确认 app.py 已启动';
+    bar.classList.remove('active');
+    txt.textContent = '连接失败，请确认服务已启动';
   } finally {
     btn.disabled = false;
-    btn.classList.remove('loading');
   }
 }
 
-// ── 渲染笔记 ──
-function renderNotes(notes) {
+function sortBy(key, el) {
+  sortKey = key;
+  document.querySelectorAll('.sort-bar button').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  render(allNotes);
+}
+
+function render(notes) {
   const grid = document.getElementById('grid');
   const empty = document.getElementById('empty');
   const stats = document.getElementById('stats');
+  const sortBar = document.getElementById('sortBar');
 
   if (!notes.length) {
     grid.innerHTML = '';
     empty.style.display = 'block';
     stats.style.display = 'none';
+    sortBar.style.display = 'none';
     return;
   }
 
   empty.style.display = 'none';
   stats.style.display = 'flex';
-  document.getElementById('statTotal').textContent = notes.length;
-  document.getElementById('statKw').textContent = [...new Set(notes.map(n=>n.keyword))].length;
-  document.getElementById('statTop').textContent = fmtNum(Math.max(...notes.map(n=>n.likes||0)));
+  sortBar.style.display = 'flex';
 
-  grid.innerHTML = notes.map(n => `
-    <div class="card" onclick="window.open('${n.url||'#'}')">
-      <div class="card-body">
-        <div class="card-title">${n.title||'(无标题)'}</div>
-        <div class="card-meta">
-          <span>👍 ${fmtNum(n.likes||0)}</span>
-          <span>⭐ ${fmtNum(n.collects||0)}</span>
-          <span>💬 ${fmtNum(n.comments||0)}</span>
+  const ranked = [...notes].sort((a,b) => (b[sortKey]||0) - (a[sortKey]||0));
+
+  document.getElementById('statTotal').textContent = ranked.length;
+  document.getElementById('statKw').textContent = [...new Set(ranked.map(n=>n.keyword))].length;
+  document.getElementById('statTop').textContent = fmtNum(Math.max(...ranked.map(n=>n.likes||0)));
+
+  grid.innerHTML = ranked.map((n, i) => {
+    const rankClass = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
+    const coverHtml = n.cover
+      ? `<img class="card-cover" src="${n.cover}" loading="lazy" onerror="this.replaceWith(coverFallback())">`
+      : `<div class="card-cover-fallback">&#9670;</div>`;
+    return `
+      <div class="card" onclick="window.open('${n.url||'#'}')">
+        <div class="card-rank ${rankClass}">${i+1}</div>
+        ${coverHtml}
+        <div class="card-body">
+          <div class="card-title">${n.title||'(无标题)'}</div>
+          <div class="card-meta">
+            <span>${fmtNum(n.likes||0)} 赞</span>
+            <span>${fmtNum(n.collects||0)} 藏</span>
+            <span>${fmtNum(n.comments||0)} 评</span>
+          </div>
+          <div class="card-footer">
+            <span class="card-author"><span>@</span>${n.author||'未知'}</span>
+            <span class="card-kw">${n.keyword||''}</span>
+          </div>
         </div>
-        <div class="card-footer">
-          <span class="card-author">${n.author||'未知'}</span>
-          <span class="card-kw">${n.keyword||''}</span>
-        </div>
-      </div>
-    </div>
-  `).join('');
+      </div>`;
+  }).join('');
+}
+
+function coverFallback() {
+  const el = document.createElement('div');
+  el.className = 'card-cover-fallback';
+  el.innerHTML = '&#9670;';
+  return el;
 }
 
 function fmtNum(n) {
@@ -241,7 +411,6 @@ function fmtNum(n) {
   return String(n);
 }
 
-// ── 历史面板 ──
 async function toggleHistory() {
   const overlay = document.getElementById('overlay');
   const panel = document.getElementById('panel');
@@ -256,23 +425,24 @@ async function toggleHistory() {
         <div class="time">${new Date(d.time).toLocaleString('zh-CN')}</div>
         <div class="name">${d.name}</div>
       </div>`
-    ).join('') || '<div style="padding:20px;color:#999;text-align:center">暂无历史</div>';
+    ).join('') || '<div style="padding:20px;color:var(--sub);text-align:center">暂无历史</div>';
   }
 }
+
 async function loadHistory(name) {
   toggleHistory();
   const r = await fetch('/api/history/' + name);
   const data = await r.json();
-  if (data.ok) renderNotes(data.notes);
+  if (data.ok) { allNotes = data.notes; render(allNotes); }
 }
-// hot reload: when page loads, check if there's existing data
+
 async function loadLatest() {
   const r = await fetch('/api/history');
   const data = await r.json();
   if (data.length) {
     const latest = await fetch('/api/history/' + data[0].name);
     const d = await latest.json();
-    if (d.ok && d.notes.length) renderNotes(d.notes);
+    if (d.ok && d.notes.length) { allNotes = d.notes; render(allNotes); }
   }
 }
 
