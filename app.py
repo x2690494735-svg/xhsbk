@@ -26,10 +26,19 @@ except Exception:
     print(f"启动失败，详情见 {LOG}")
     sys.exit(1)
 
-_asyncio_loop = asyncio.new_event_loop()
+import threading
+
+_aloop = asyncio.new_event_loop()
+
+def _aloop_thread():
+    asyncio.set_event_loop(_aloop)
+    _aloop.run_forever()
+
+threading.Thread(target=_aloop_thread, daemon=True).start()
 
 def _run_async(coro):
-    return _asyncio_loop.run_until_complete(coro)
+    f = asyncio.run_coroutine_threadsafe(coro, _aloop)
+    return f.result(timeout=300)
 
 app = Flask(
     __name__,

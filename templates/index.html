@@ -188,8 +188,7 @@
   .card-expand-hint { font-size:11px; color:var(--gold); margin-top:8px; text-align:center; letter-spacing:1px; display:none; }
   .card.has-desc .card-expand-hint { display:block; }
   .card.expanded .card-expand-hint { display:none; }
-  .card-ext-link { display:block; margin-top:12px; padding:8px 0; text-align:center; color:var(--gold); font-size:12px; text-decoration:none; letter-spacing:1px; border-top:1px solid var(--border); }
-  .card-ext-link:hover { color:var(--gold-light); }
+  .card-no-desc { margin-top:12px; padding-top:12px; border-top:1px solid var(--border); font-size:12px; color:var(--sub); text-align:center; letter-spacing:1px; }
 
   .empty-state { text-align:center; padding:120px 0; color:var(--sub); }
   .empty-orb {
@@ -507,7 +506,7 @@ function render(notes) {
       ? `<img class="card-cover" src="${n.cover}" loading="lazy" onerror="this.replaceWith(coverFallback())">`
       : `<div class="card-cover-fallback">&#9670;</div>`;
     return `
-      <div class="card" style="transition-delay:${i*0.03}s" class="${hasDesc?'has-desc':''}" style="transition-delay:${i*0.03}s">
+      <div class="card ${hasDesc?'has-desc':''}" style="transition-delay:${i*0.03}s">
         <div class="card-rank ${rankClass}">${i+1}</div>
         ${coverHtml}
         <div class="card-body" onclick="event.stopPropagation();this.parentElement.classList.toggle('expanded')">

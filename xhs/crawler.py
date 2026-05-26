@@ -105,6 +105,7 @@ class Crawler:
 
     async def _wait_for_login(self, page):
         await page.bring_to_front()
+        await page.evaluate("window.focus()")
         await page.goto("https://www.xiaohongshu.com/explore", timeout=self.timeout * 1000)
         await asyncio.sleep(2)
         btn = await page.query_selector(".login-btn, .login-container, [class*=login]")
@@ -138,19 +139,20 @@ class Crawler:
 
         js = """
             async (noteId) => {
+                const base = 'https://edith.xiaohongshu.com';
                 const endpoints = [
-                    `/api/sns/web/v1/feed?source_note_id=${noteId}`,
-                    `/api/sns/web/v1/note/${noteId}`,
+                    `${base}/api/sns/web/v1/feed?source_note_id=${noteId}`,
+                    `${base}/api/sns/web/v1/feed?note_id=${noteId}`,
+                    `${base}/api/sns/web/v1/note/${noteId}`,
                 ];
                 for (const ep of endpoints) {
                     try {
                         const resp = await fetch(ep, {credentials:'include'});
                         if (!resp.ok) continue;
                         const data = await resp.json();
-                        if (!data.success && data.code !== 0) continue;
                         const item = data.data?.items?.[0] || data.data;
-                        const nc = item?.note_card || item?.noteCard || item;
-                        const desc = nc?.desc || nc?.display_content || nc?.note_desc || '';
+                        const nc = item?.note_card || item?.noteCard || item || {};
+                        const desc = nc.desc || nc.display_content || nc.note_desc || data.data?.desc || '';
                         if (desc) return desc;
                     } catch(e) {}
                 }
