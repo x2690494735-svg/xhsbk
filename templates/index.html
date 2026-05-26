@@ -183,6 +183,11 @@
   .card-author { font-size:13px; color:#666; }
   .card-author em { font-style:normal; color:var(--gold); margin-right:1px; }
   .card-kw { font-size:11px; background:rgba(200,168,96,.08); color:var(--gold-light); padding:3px 10px; border-radius:10px; letter-spacing:1px; }
+  .card-desc { display:none; margin-top:14px; padding-top:14px; border-top:1px solid var(--border); font-size:13px; line-height:1.8; color:#a0a0b0; max-height:300px; overflow-y:auto; white-space:pre-wrap; }
+  .card.expanded .card-desc { display:block; }
+  .card-expand-hint { font-size:11px; color:var(--gold); margin-top:8px; text-align:center; letter-spacing:1px; display:none; }
+  .card.has-desc .card-expand-hint { display:block; }
+  .card.expanded .card-expand-hint { display:none; }
 
   .empty-state { text-align:center; padding:120px 0; color:var(--sub); }
   .empty-orb {
@@ -494,14 +499,16 @@ function render(notes) {
 
   grid.innerHTML = ranked.map((n, i) => {
     const rankClass = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
+    const desc = (n.desc||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/`/g,'&#96;').replace(/\$\{/g,'&#36;{');
+    const hasDesc = desc.length > 10;
     const coverHtml = n.cover
       ? `<img class="card-cover" src="${n.cover}" loading="lazy" onerror="this.replaceWith(coverFallback())">`
       : `<div class="card-cover-fallback">&#9670;</div>`;
     return `
-      <div class="card" style="transition-delay:${i*0.03}s" onclick="window.open('${n.url||'#'}')">
+      <div class="card" style="transition-delay:${i*0.03}s" class="${hasDesc?'has-desc':''}" style="transition-delay:${i*0.03}s">
         <div class="card-rank ${rankClass}">${i+1}</div>
         ${coverHtml}
-        <div class="card-body">
+        <div class="card-body" onclick="event.stopPropagation();this.parentElement.classList.toggle('expanded')">
           <div class="card-title">${n.title||'(无标题)'}</div>
           <div class="card-meta">
             <span>${fmtNum(n.likes||0)} 赞</span>
@@ -512,6 +519,7 @@ function render(notes) {
             <span class="card-author"><em>@</em>${n.author||'未知'}</span>
             <span class="card-kw">${n.keyword||''}</span>
           </div>
+          ${hasDesc ? `<div class="card-desc">${desc}</div><div class="card-expand-hint">展开阅读</div>` : ''}
         </div>
       </div>`;
   }).join('');

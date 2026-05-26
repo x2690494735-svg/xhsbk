@@ -41,6 +41,16 @@ class Crawler:
                 all_notes.extend(notes)
                 print(f"  -> {len(notes)} 条")
 
+            print(f"采集正文中（共 {len(all_notes)} 篇）...")
+            for i, n in enumerate(all_notes):
+                if n.get("url") and not n.get("desc"):
+                    try:
+                        n["desc"] = await self._scrape_content(page, n["url"])
+                        print(f"  [{i+1}/{len(all_notes)}] {n['title'][:20]}...")
+                    except Exception:
+                        pass
+                    await asyncio.sleep(0.5)
+
             self._save_state(context)
             await browser.close()
 
@@ -111,6 +121,21 @@ class Crawler:
             n["keyword"] = keyword
         return notes
 
+    async def _scrape_content(self, page, url: str) -> str:
+        await page.goto(url, timeout=15000)
+        await asyncio.sleep(1)
+        parts = []
+        for sel in ["#detail-desc", ".note-text", ".desc", "[class*=note-text]", "[class*=content]"]:
+            try:
+                el = await page.query_selector(sel)
+                if el:
+                    text = await el.inner_text()
+                    if text.strip():
+                        parts.append(text.strip())
+            except Exception:
+                pass
+        return "\n".join(parts)[:2000]
+
     async def _on_response(self, response):
         url = response.url
         if "/api/sns/web/v1/search/notes" in url and response.ok:
@@ -131,6 +156,7 @@ class Crawler:
                         "collects": int(nc.get("interact_info", {}).get("collected_count", 0)),
                         "comments": int(nc.get("interact_info", {}).get("comment_count", 0)),
                         "cover": nc.get("cover", {}).get("url_default", ""),
+                        "desc": nc.get("desc", ""),
                     })
             except Exception:
                 pass
