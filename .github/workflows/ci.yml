@@ -17,9 +17,11 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt pyinstaller
+      - run: playwright install chromium
       - run: pyinstaller build.spec --distpath dist --workpath build --noconfirm
       - run: |
           New-Item -ItemType Directory -Force -Path "dist\xhs-hot"
+          Move-Item -Force -Path "dist\xhs-hot.exe" -Destination "dist\xhs-hot\xhs-hot.exe"
           Set-Content -Path "dist\xhs-hot\start.bat" -Value "@echo off`n%~dp0xhs-hot.exe`npause"
       - run: Compress-Archive -Path "dist\xhs-hot\*" -DestinationPath "xhs-hot.zip"
       - uses: actions/upload-artifact@v4
