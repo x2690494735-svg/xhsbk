@@ -22,7 +22,7 @@ jobs:
       - run: |
           New-Item -ItemType Directory -Force -Path "dist\xhs-hot"
           Move-Item -Force -Path "dist\xhs-hot.exe" -Destination "dist\xhs-hot\xhs-hot.exe"
-          Set-Content -Path "dist\xhs-hot\start.bat" -Value "@echo off`n%~dp0xhs-hot.exe`npause"
+          Set-Content -Path "dist\xhs-hot\start.bat" -Value "@echo off`nchcp 65001 >nul`ntitle 小红书热点收集器`ncd /d `"%~dp0`"`nstart http://127.0.0.1:5000`n%~dp0xhs-hot.exe`npause"
       - run: Compress-Archive -Path "dist\xhs-hot\*" -DestinationPath "xhs-hot.zip"
       - uses: actions/upload-artifact@v4
         with:
